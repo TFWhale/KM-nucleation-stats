@@ -1,0 +1,155 @@
+# Statistical Analysis of Droplet-Freezing Data
+
+This repository contains three Jupyter notebooks for analysing and comparing droplet-freezing temperature distributions:
+
+1. calculation of fraction-frozen curves and Kaplan–Meier confidence intervals;
+2. comparison of two freezing-temperature distributions using a log-rank test; and
+3. comparison of two fraction-frozen curves using an Integrated Squared Difference permutation test.
+
+The notebooks accept freezing temperatures arranged in CSV columns and produce numerical results and figures.
+
+## Notebooks
+
+### `KM_CI_calculator.ipynb`
+
+Calculates fraction-frozen curves and pointwise Kaplan–Meier confidence intervals for one or more experiments.
+
+The notebook can optionally transform fraction frozen, \(F(T)\), into a cumulative ice-nucleation activity spectrum:
+
+\[
+K(T) =
+\frac{-\ln[1-F(T)]}
+{\text{cumulative spectrum normalisation factor}}
+\]
+
+The normalisation factor may represent droplet volume, sample mass, particle surface area, or another quantity appropriate to the experiment.
+
+Outputs:
+- fraction-frozen values;
+- pointwise lower and upper confidence limits;
+- optional \(K(T)\) values and confidence limits;
+- a results CSV file;
+- a fraction-frozen figure; and
+- an optional \(K(T)\) figure.
+
+Set the following option in the notebook to turn the cumulative-spectrum calculation on or off:
+
+CALCULATE_CUMULATIVE_SPECTRUM = True
+
+The shaded regions in the figures connect pointwise confidence intervals for visual clarity. They are not simultaneous confidence bands for the entire curve.
+
+### `log_rank_test.ipynb`
+
+Performs a two-sided log-rank test comparing two sets of freezing temperatures.
+
+The log-rank test is most appropriate when the expected difference resembles a general shift towards warmer or colder freezing. It may have relatively low power when curves cross, differ substantially in shape, or contain different proportions of multiple ice-active populations.
+
+The notebook reports:
+
+- the names and numbers of observations in the two groups;
+- the log-rank test statistic;
+- the two-sided p-value; and
+- a figure showing the fraction-frozen curves and pointwise confidence intervals.
+
+A small p-value provides evidence that the underlying freezing-temperature distributions differ. The test does not identify where or why they differ, and a non-significant result does not establish that the distributions are identical.
+
+### `ISD_test.ipynb`
+
+Performs an Integrated Squared Difference (ISD) permutation test comparing two fraction-frozen curves.
+
+The test statistic is the accumulated squared separation between the two curves over the analysed temperature interval:
+
+\[
+Q =
+\int
+\left[F_1(T)-F_2(T)\right]^2\,\mathrm{d}T
+\]
+
+A permutation procedure estimates the null distribution of \(Q\) by repeatedly combining and randomly reallocating the observed freezing temperatures while retaining the original group sizes.
+
+Unlike the log-rank test, the ISD test is intended as a general comparison of the two curves. It can detect differences involving:
+
+- shifts in freezing temperature;
+- differences in curve shape;
+- crossing curves; and
+- different proportions of ice-active populations.
+
+The notebook reports:
+
+- the observed ISD statistic;
+- the permutation p-value;
+- the two fraction-frozen curves and their pointwise confidence intervals; and
+- the permutation distribution of the ISD statistic.
+
+The ISD statistic has units of temperature and depends on the temperature interval used in the calculation. This does not affect the permutation p-value because the same interval and temperature grid are used for the observed and permuted datasets.
+
+## Input-file format
+
+Input data should be supplied as CSV files containing individual droplet-freezing temperatures in columns. The first row should contain the experiment or group names.
+
+For example:
+
+```csv
+Untreated,Wet_heat
+-18.4,-19.2
+-19.7,-20.1
+-20.3,-21.5
+-21.8,-22.0
+```
+
+The columns do not need to contain the same numbers of observations. Blank and non-numeric cells are removed automatically.
+
+The Kaplan–Meier notebook treats every CSV column as a separate experimental group. The log-rank and ISD notebooks compare the first two columns.
+
+The notebooks currently assume that every numerical value represents an observed freezing event. They do not currently accommodate right-censored droplets that remained unfrozen at the experimental temperature limit.
+
+## Example data
+
+The example dataset is derived from the droplet-freezing results presented in Fig. 1(d) of:
+
+> Daily, M. I., Tarn, M. D., Whale, T. F., and Murray, B. J. (2022). An evaluation of the heat test for the ice-nucleating ability of minerals and biological material. *Atmospheric Measurement Techniques*, **15**, 2635–2665.  
+> https://doi.org/10.5194/amt-15-2635-2022
+
+The example data are provided to demonstrate the notebook input format and analysis workflow. Users should consult the original paper and dataset for the experimental methods, sample identities, and scientific interpretation.
+
+## Requirements
+
+The notebooks require Python 3 and Jupyter Notebook or JupyterLab.
+
+The principal Python packages are: `numpy` `pandas` `matplotlib`
+
+The packages can be installed using:
+bash pip install numpy pandas matplotlib scipy jupyter
+
+## Running the notebooks
+
+1. Download or clone this repository.
+2. Place the input CSV file in the same folder as the notebooks.
+3. Open the required notebook in Jupyter Notebook or JupyterLab.
+4. Edit the input filename and analysis options in the **Setup** cell.
+5. Restart the kernel and run all cells in order.
+6. Check the reported group names and numbers of observations.
+7. Inspect the numerical results and figures.
+
+For example:
+INPUT_FILENAME = "example_data.csv"
+
+For reproducible permutation-test results, users may wish to set a NumPy random seed before running the ISD test by adding:
+np.random.seed(12345)
+
+## Choosing between the comparison tests
+The log-rank and ISD tests answer related but not identical questions.
+- Use the log-rank test when a difference is expected to resemble a general shift towards warmer or colder freezing.
+- Use the ISD test for a general comparison, particularly where the curves may cross or differ in shape.
+- Inspect the fraction-frozen curves and confidence intervals alongside either statistical test.
+- Select the statistical method before inspecting the test results wherever possible.
+- A p-value is not a measure of the magnitude or scientific importance of a difference. The number of droplets in each group should always be reported alongside the curves, confidence intervals, and test results.
+
+## Statistical notes
+- The confidence intervals are pointwise rather than simultaneous confidence bands.
+- Confidence intervals should be interpreted cautiously near fractions frozen of 0 and 1, where finite experiments contain relatively little information.
+- A non-significant result does not demonstrate that two distributions are equivalent.
+- Small experiments may have limited statistical power.
+- These notebooks are intended to support, rather than replace, consideration of the experimental design and physical interpretation of the data.
+
+
